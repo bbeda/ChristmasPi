@@ -30,7 +30,7 @@ def random_colours(tree, iterations):
 
 def one_at_a_time(delay, colour):
     tree.color=(0,0,0)
-    for pixel in range(0,25):
+    for pixel in range(0, 25):
         tree[pixel].color=colour
         if delay>0:
             sleep(delay)
