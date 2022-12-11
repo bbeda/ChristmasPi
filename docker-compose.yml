@@ -1,0 +1,17 @@
+version: "2"
+
+services:
+  pgppio:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.pgpio
+    ports:
+      - 8888:8888
+    privileged: true
+  tree:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.app
+    privileged: true
+    depends_on:
+      - pgppio
