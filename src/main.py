@@ -28,6 +28,38 @@ def random_colours(tree, iterations):
     except Exception as e:
         print(e)
 
+def random_columns(tree, iterations):
+    iteration=0
+    try:
+        while iterations<=0 or iteration<iterations:
+            if iterations>0:
+                iteration+=1
+
+            for color in colors:
+                columns=list(range(0,8))
+                random.shuffle(columns);
+                for cx in columns:
+                    column(cx, color)
+
+    except Exception as e:
+        print(e)
+
+def random_lines(tree, iterations):
+    iteration=0
+    try:
+        while iterations<=0 or iteration<iterations:
+            if iterations>0:
+                iteration+=1
+
+            for color in colors:
+                lines=list(range(0,5))
+                random.shuffle(lines);
+                for lx in lines:
+                    line(lx, color)
+
+    except Exception as e:
+        print(e)
+
 def one_at_a_time(delay, colour):
     tree.color=(0,0,0)
     for pixel in range(0, 25):
@@ -36,8 +68,13 @@ def one_at_a_time(delay, colour):
             sleep(delay)
 
 def line(ix, colour):
-    lines=[[0,6,7,12,13,18,21,22],[1,5,8,11,14,17,20,23],[16],[2,4,9,10,15,19,24],[3]]
+    lines=[[0,6,7,12,15,19,16,24],[1,5,8,11,14,17,20,23],[13,18,22],[2,4,9,10, 21],[3]]
     for pixel in lines[ix]:
+        tree[pixel].color=colour
+
+def column(ix, colour):
+    columns=[[0,1,2,3],[7,8,9],[19,20,21],[24,23,22],[12,11,10],[6,5,4,3],[16,17,18],[15,14,13]]
+    for pixel in columns[ix]:
         tree[pixel].color=colour
 
 signal.signal(signal.SIGTERM, handle_exit)
@@ -48,9 +85,12 @@ signal.signal(signal.SIGILL, handle_exit)
 tree.brightness=0.05
 while True:
     random_colours(tree, 15)
+    random_columns(tree, 15)
+    random_lines(tree, 15)
+
     sleep(1)
     for colour in colors:
-        one_at_a_time(1/20, colour)
+        one_at_a_time(1/50, colour)
     for colour in colors:
         tree.color=colour
         sleep(0.3)
@@ -59,4 +99,16 @@ while True:
     for colour in colors:
         for lx in range(0,5):
             line(lx, colour)
-            sleep(1)
+            sleep(1/50)
+    for colour in colors:
+        for lx in reversed(range(0,5)):
+            line(lx, colour)
+            sleep(1/50)
+    prevColor=Color("white")
+    for colour in colors:
+        for cx in range(0,4):
+            column(cx, colour)
+            column(cx+4, colour)
+            sleep(1/2)
+            tree.color=prevColor
+        prevColor=colour
