@@ -1,11 +1,22 @@
+from dis import code_info
+from os import stat
 from random import random
 from tree import RGBXmasTree
 from colorzero import Color
 from time import sleep
+from flask import Flask
+from concurrent.futures import ThreadPoolExecutor
 import random
 import signal
 
+
+app = Flask(__name__)
+
 tree = RGBXmasTree()
+state="play"
+
+executor = ThreadPoolExecutor(1)
+
 colors = [Color('red'), Color('yellow'), Color('blue'), Color('green'), Color('orange'), Color('pink')]
 
 def handle_exit(*args):
@@ -77,38 +88,58 @@ def column(ix, colour):
     for pixel in columns[ix]:
         tree[pixel].color=colour
 
+def play():
+    tree.brightness=0.05
+    while True:
+        if state=="stop":
+            sleep(5)
+            continue
+
+        random_colours(tree, 15)
+        random_columns(tree, 15)
+        random_lines(tree, 15)
+
+        sleep(1)
+        for colour in colors:
+            one_at_a_time(1/50, colour)
+        for colour in colors:
+            tree.color=colour
+            sleep(0.3)
+            tree.color=Color('black')
+            sleep(0.3)
+        for colour in colors:
+            for lx in range(0,5):
+                line(lx, colour)
+                sleep(1/50)
+        for colour in colors:
+            for lx in reversed(range(0,5)):
+                line(lx, colour)
+                sleep(1/50)
+        prevColor=Color("white")
+        for colour in colors:
+            for cx in range(0,4):
+                column(cx, colour)
+                column(cx+4, colour)
+                sleep(1/2)
+                tree.color=prevColor
+            prevColor=colour
+
 signal.signal(signal.SIGTERM, handle_exit)
 signal.signal(signal.SIGINT, handle_exit)
 signal.signal(signal.SIGILL, handle_exit)
 
+@app.route('/play')
+def set_play():
+    state='play'
 
-tree.brightness=0.05
-while True:
-    random_colours(tree, 15)
-    random_columns(tree, 15)
-    random_lines(tree, 15)
+@app.route('/stop')
+def set_stop():
+    state='stop'
 
-    sleep(1)
-    for colour in colors:
-        one_at_a_time(1/50, colour)
-    for colour in colors:
-        tree.color=colour
-        sleep(0.3)
-        tree.color=Color('black')
-        sleep(0.3)
-    for colour in colors:
-        for lx in range(0,5):
-            line(lx, colour)
-            sleep(1/50)
-    for colour in colors:
-        for lx in reversed(range(0,5)):
-            line(lx, colour)
-            sleep(1/50)
-    prevColor=Color("white")
-    for colour in colors:
-        for cx in range(0,4):
-            column(cx, colour)
-            column(cx+4, colour)
-            sleep(1/2)
-            tree.color=prevColor
-        prevColor=colour
+@app.route('/health')
+def health():
+    return "OK"
+
+if __name__ == '__main__':
+    executor.submit(play)
+    app.run()
