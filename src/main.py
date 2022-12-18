@@ -92,7 +92,7 @@ def column(ix, colour):
 def play():
     while True:
         if state["value"]=="stop":
-            tree.brightness=0.02
+            tree.brightness=0.05
             tree.color=Color('black')
             tree[3].color=Color('white')
             sleep(1)
@@ -164,4 +164,4 @@ def health():
 
 if __name__ == '__main__':
     executor.submit(play)
-    app.run(host="192.168.1.171", port=80)
+    app.run(host="192.168.1.171", port=8080)
