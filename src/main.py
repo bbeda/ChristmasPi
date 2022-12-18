@@ -13,7 +13,8 @@ import signal
 app = Flask(__name__)
 
 tree = RGBXmasTree()
-state="play"
+state={}
+state["value"]="stop"
 
 executor = ThreadPoolExecutor(1)
 
@@ -89,32 +90,51 @@ def column(ix, colour):
         tree[pixel].color=colour
 
 def play():
-    tree.brightness=0.05
     while True:
-        if state=="stop":
+        if state["value"]=="stop":
+            tree.brightness=0.02
+            tree.color=Color('black')
+            tree[3].color=Color('white')
+            sleep(1)
+            tree[3].color=Color('black')
             sleep(5)
             continue
 
+        tree.brightness=0.05
         random_colours(tree, 15)
+        if state["value"]=="stop":
+            continue
         random_columns(tree, 15)
+        if state["value"]=="stop":
+            continue
         random_lines(tree, 15)
+        if state["value"]=="stop":
+            continue
 
         sleep(1)
         for colour in colors:
             one_at_a_time(1/50, colour)
+        if state["value"]=="stop":
+            continue
         for colour in colors:
             tree.color=colour
             sleep(0.3)
             tree.color=Color('black')
             sleep(0.3)
+        if state["value"]=="stop":
+            continue
         for colour in colors:
             for lx in range(0,5):
                 line(lx, colour)
                 sleep(1/50)
+        if state["value"]=="stop":
+            continue
         for colour in colors:
             for lx in reversed(range(0,5)):
                 line(lx, colour)
                 sleep(1/50)
+        if state["value"]=="stop":
+            continue
         prevColor=Color("white")
         for colour in colors:
             for cx in range(0,4):
@@ -130,16 +150,18 @@ signal.signal(signal.SIGILL, handle_exit)
 
 @app.route('/play')
 def set_play():
-    state='play'
+    state["value"]='play'
+    return 'play'
 
 @app.route('/stop')
 def set_stop():
-    state='stop'
+    state["value"]='stop'
+    return 'stop'
 
 @app.route('/health')
 def health():
-    return "OK"
+    return state["value"]
 
 if __name__ == '__main__':
     executor.submit(play)
-    app.run()
+    app.run(host="192.168.1.171", port=80)
